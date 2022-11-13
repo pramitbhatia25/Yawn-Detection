@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from PIL import Image
 import tensorflow as tf
 import numpy as np
+import torch
 
 app = Flask(__name__)
 
@@ -12,6 +13,7 @@ def hello():
     img.save('output.png')
     cnn = tf.keras.models.load_model("yawn_model.h5")
     img = "output.png"
+
     test_image = tf.keras.utils.load_img(img, target_size = (64, 64))
     test_image = tf.keras.utils.img_to_array(test_image)
     test_image = np.expand_dims(test_image, axis = 0)

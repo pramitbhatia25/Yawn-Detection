@@ -8,6 +8,7 @@ def save_uploadedfile(uploadedfile):
      return st.success("Saved File:{} to tempDir".format(uploadedfile.name))
 
 with st.sidebar:
+    st.image("img.png")
     st.title("Yawn Image Detection")
     st.info("This app lets you click an image and predict if the person in the image is yawning or not.")
     st.info("The image is being sent to a Flask API, which uses a trained Deep Learning Model to make a prediction.")
@@ -24,4 +25,3 @@ if datafile is not None:
     r = requests.post(url, files=my_img)
     st.write(r.json()['ans'])
     st.write(r.json()['prob'])
-
