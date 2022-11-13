@@ -1,27 +1,28 @@
-import requests
-import streamlit as st
-from io import StringIO
-import os
-def save_uploadedfile(uploadedfile):
-     with open("image.jpg","wb") as f:
-         f.write(uploadedfile.getbuffer())
-     return st.success("Saved File:{} to tempDir".format(uploadedfile.name))
+from flask import Flask, request, jsonify
+from PIL import Image
+import tensorflow as tf
+import numpy as np
+import torch
 
-with st.sidebar:
-    st.image("img.png")
-    st.title("Yawn Image Detection")
-    st.info("This app lets you click an image and predict if the person in the image is yawning or not.")
-    st.info("The image is being sent to a Flask API, which uses a trained Deep Learning Model to make a prediction.")
+app = Flask(__name__)
 
-datafile = st.camera_input("Take a picture")
+@app.route("/", methods=["GET", "POST"])
+def hello():
+    file = request.files['image']
+    img = Image.open(file.stream)
+    img.save('output.png')
+    cnn = tf.keras.models.load_model("yawn_model.h5")
+    img = "output.png"
 
-if datafile is not None:
-    file_details = {"FileName":datafile.name,"FileType":datafile.type}
-    save_uploadedfile(datafile)
+    test_image = tf.keras.utils.load_img(img, target_size = (64, 64))
+    test_image = tf.keras.utils.img_to_array(test_image)
+    test_image = np.expand_dims(test_image, axis = 0)
 
-    url = 'http://127.0.0.1:5000/'
-    
-    my_img = {'image': open("image.jpg", 'rb')}
-    r = requests.post(url, files=my_img)
-    st.write(r.json()['ans'])
-    st.write(r.json()['prob'])
+    result = cnn.predict(test_image/255.0)
+    print(result[0][0])
+    if(result > 0.5):
+        ans = "Yawn"
+    else:
+        ans = "No yawn"
+
+    return jsonify({'msg': 'success', 'ans':ans, 'prob': str(result[0][0])})
